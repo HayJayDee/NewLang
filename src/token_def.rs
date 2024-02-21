@@ -18,16 +18,20 @@ pub enum TokenType {
     RightBracket,
     /// An Identifier token
     Identifier(String),
+    /// An Identifier token
+    Keyword(&'static str),
     /// Token =
     Equal,
     /// An integer token
-    Number(usize),
+    Number(i64),
     /// Token ++
     Increment,
+    Eof,
 }
 
 /// An array of every constant token, so the lexer can access them easier
-pub const REGISTERED_TOKENS: [ConstantToken; 9] = [
+pub const REGISTERED_TOKENS: [ConstantToken; 10] = [
+    constant_token!("void", TokenType::Keyword("void")),
     constant_token!("++", TokenType::Increment),
     constant_token!("+", TokenType::Plus),
     constant_token!(";", TokenType::Semicolon),

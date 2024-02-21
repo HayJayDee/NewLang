@@ -24,135 +24,110 @@ impl Display for LexerError {
 }
 
 pub struct Lexer {
-    text: String,
+    chars: Vec<char>,
+    pos: usize,
+    line: usize
 }
 
 impl Lexer {
     pub fn new(input: String) -> Self {
-        Self { text: input }
+        Self {
+            chars: input.chars().collect(),
+            pos: 0,
+            line: 1
+        }
     }
 
-    /// Lexing one line
-    /// # Arguments
-    /// * `line_num` - The line number of the current line
-    /// * `line` - The actual line which will be lexed
-    /// # Returns
-    /// The lexed tokens or an error, it there was an unknown character
-    fn lex_line(&self, line_num: usize, line: &str) -> Result<Vec<Token>, LexerError> {
-        let mut pos = 0;
-        let mut tokens: Vec<Token> = Vec::new();
-
-        let chars: Vec<char> = line.chars().collect();
-        let chars_len = chars.len();
-
-        while pos < line.len() {
-            let mut successfull = false;
-
+    pub fn get_next_token(&mut self) -> Result<Token, LexerError> {
+        if self.pos < self.chars.len() {
             // Skip all whitespaces
-            if chars[pos].is_whitespace() {
-                pos += 1;
-                continue;
+            while self.chars[self.pos].is_whitespace() {
+                if self.chars[self.pos] == '\n' {
+                    self.line += 1;
+                }
+                self.pos += 1;
             }
 
             // Check for a constant token
             for registered_token in REGISTERED_TOKENS {
                 // Check if the line is even long enough
-                if chars_len - pos < registered_token.match_str.len() {
+                if self.chars.len() - self.pos < registered_token.match_str.len() {
                     continue;
                 }
 
                 // TODO: Change this step, so we don't have to allocate this every time
                 if registered_token.match_str.chars().collect::<Vec<char>>()
-                    == chars[pos..pos + registered_token.match_str.len()]
+                    == self.chars[self.pos..self.pos + registered_token.match_str.len()]
                 {
-                    tokens.push(Token {
-                        pos,
-                        line: line_num,
+                    let start_pos = self.pos;
+                    self.pos += registered_token.match_str.len();
+                    return Ok(Token {
+                        pos: start_pos,
+                        line: self.line,
                         token_type: registered_token.token_type.clone(),
                     });
-                    pos += registered_token.match_str.len();
-                    successfull = true;
-                    break;
                 }
-            }
-
-            if successfull {
-                continue;
             }
 
             // Lex identificators
-            if chars[pos].is_alphabetic() || chars[pos] == '_' {
-                let start_pos = pos;
-                pos += 1;
-                while let Some(c) = chars.get(pos) {
+            if self.chars[self.pos].is_alphabetic() || self.chars[self.pos] == '_' {
+                let start_pos = self.pos;
+                self.pos += 1;
+                while let Some(c) = self.chars.get(self.pos) {
                     if !c.is_alphanumeric() && *c != '_' {
                         break;
                     }
-                    pos += 1;
+                    self.pos += 1;
                 }
-                tokens.push(Token {
+                return Ok(Token {
                     pos: start_pos,
-                    line: line_num,
+                    line: self.line,
                     token_type: TokenType::Identifier(
-                        chars[start_pos..pos].to_vec().iter().collect(),
+                        self.chars[start_pos..self.pos].to_vec().iter().collect(),
                     ),
                 });
-                continue;
             }
 
             // Lex numbers
-            if chars[pos].is_numeric() {
-                let start_pos = pos;
-                pos += 1;
-                while let Some(c) = chars.get(pos) {
+            if self.chars[self.pos].is_numeric() {
+                let start_pos = self.pos;
+                self.pos += 1;
+                while let Some(c) = self.chars.get(self.pos) {
                     if !c.is_numeric() {
                         break;
                     }
-                    pos += 1;
+                    self.pos += 1;
                 }
                 // Parse the string into a number
-                let string: String = chars[start_pos..pos].to_vec().iter().collect();
+                let string: String = self.chars[start_pos..self.pos].to_vec().iter().collect();
                 match string.as_str().parse() {
                     Ok(number) => {
-                        tokens.push(Token {
+                        return Ok(Token {
                             pos: start_pos,
-                            line: line_num,
+                            line: self.line,
                             token_type: TokenType::Number(number),
                         });
                     }
                     Err(_) => Err(LexerError {
-                        pos,
-                        line: line_num,
-                        content: chars[pos].to_string(),
+                        pos: self.pos,
+                        line: self.line,
+                        content: self.chars[self.pos].to_string(),
                     })?,
                 }
-                continue;
-            }
-
-            if !successfull {
-                Err(LexerError {
-                    pos,
-                    line: line_num,
-                    content: chars[pos].to_string(),
-                })?
-            }
+            } 
         }
-        Ok(tokens)
+        Ok(Token { pos: self.pos, line: self.line, token_type: TokenType::Eof })
     }
+}
 
-    /// Lex the text of the Lexer
-    /// # Returns
-    /// A list of all parsed vectors or the error
-    pub fn lex(&self) -> Result<Vec<Token>, LexerError> {
-        let lines = self.text.split('\n');
-
-        let mut tokens: Vec<Token> = Vec::new();
-
-        for (line_num, line) in lines.enumerate() {
-            let line_tokens = self.lex_line(line_num + 1, line)?;
-            tokens.extend(line_tokens);
+impl Iterator for Lexer {
+    type Item = Token;
+    fn next(&mut self) -> Option<Self::Item> {
+        let next_token = self.get_next_token().unwrap();
+        if next_token.token_type == TokenType::Eof {
+            None
+        }else {
+            Some(next_token)
         }
-
-        Ok(tokens)
     }
 }

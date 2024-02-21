@@ -1,7 +1,7 @@
 use crate::token_def::TokenType;
 
 /// The representation of a token
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Token {
     /// The position in the line (0 is first)
     pub pos: usize,
