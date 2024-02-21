@@ -49,6 +49,8 @@ impl Lexer {
                     continue;
                 }
 
+                let i = 0;
+
                 // Lex constant expressions like +, -, *
                 // TODO: Change this step
                 if registered_token.match_str.chars().collect::<Vec<char>>()
