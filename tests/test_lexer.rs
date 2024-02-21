@@ -1,7 +1,7 @@
 use language::{
     self,
     lexer::Lexer,
-    token::{Token, TokenType, REGISTERED_TOKENS},
+    token::{Token, TokenType}, token_def::REGISTERED_TOKENS,
 };
 
 fn test_token_vector(left: Vec<Token>, right: Vec<Token>) {
@@ -14,7 +14,7 @@ fn test_token_vector(left: Vec<Token>, right: Vec<Token>) {
 fn lexer_test_tokens() {
     let test_string = "void main ( ) )) {}     =";
     let lexer = Lexer::new(test_string.to_string());
-    let tokens = lexer.lex();
+    let tokens = lexer.lex().unwrap();
 
     test_token_vector(
         tokens,
@@ -82,7 +82,7 @@ fn lexer_test_every_registered_token() {
     for token in REGISTERED_TOKENS {
         let input = token.match_str;
         let lexer = Lexer::new(input.to_string());
-        let tokens = lexer.lex();
+        let tokens = lexer.lex().unwrap();
         assert_eq!(tokens.len(), 1);
         assert_eq!(
             tokens[0],
@@ -100,7 +100,7 @@ fn lexer_test_every_registered_token() {
 fn lexer_test_identifier() {
     let input = "test _test tes_te _te_te_ _te123123_";
     let lexer = Lexer::new(input.to_string());
-    let tokens = lexer.lex();
+    let tokens = lexer.lex().unwrap();
     test_token_vector(
         tokens,
         vec![
@@ -136,4 +136,16 @@ fn lexer_test_identifier() {
             },
         ],
     );
+}
+
+#[test]
+pub fn test_lexer_utf8() {
+    let input = "©";
+    let lexer = Lexer::new(input.to_string());
+    match lexer.lex() {
+        Ok(_) => {
+            assert!(false)
+        },
+        Err(_) => {}
+    }
 }

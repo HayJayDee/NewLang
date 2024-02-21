@@ -1,9 +1,9 @@
 use std::fmt::{self, Display, Formatter};
 
-use crate::token::*;
+use crate::{token::*, token_def::REGISTERED_TOKENS};
 
 #[derive(Clone, Debug)]
-struct LexerError {
+pub struct LexerError {
     line: usize,
     pos: usize,
     content: String,
@@ -100,20 +100,17 @@ impl Lexer {
         Ok(tokens)
     }
 
-    pub fn lex(&self) -> Vec<Token> {
+    pub fn lex(&self) -> Result<Vec<Token>, LexerError> {
         let lines = self.text.split('\n');
 
         let mut tokens: Vec<Token> = Vec::new();
 
         for (line_num, line) in lines.enumerate() {
-            let line_tokens = self.lex_line(line_num + 1, line).unwrap_or_else(|err| {
-                println!("Lexer Error: {}", err);
-                Vec::new()
-            });
+            let line_tokens = self.lex_line(line_num + 1, line)?;
 
             tokens.extend(line_tokens);
         }
 
-        tokens
+        Ok(tokens)
     }
 }

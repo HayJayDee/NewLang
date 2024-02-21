@@ -1,31 +1,12 @@
-/*
-use crate::token::Token;
+use crate::{lexable_token, token::{LexableToken, TokenType}};
 
-macro_rules! token {
-    ($name:ident) => {
-        pub struct $name {
-            text: String,
-            pos: i32,
-            line: i32,
-        }
 
-        impl $name {
-            pub fn new(text: String, pos: i32, line: i32) -> Self {
-                Self{
-                    text: text,
-                    pos: pos,
-                    line: line
-                }
-            }
-        }
-
-        impl Token for $name {
-            fn from_str(&self, text: String, pos: i32, line: i32) -> Box<dyn Token> {
-                Box::new($name::new(text, pos, line))
-            }
-        }
-    };
-}
-
-token!(Plus);
-*/
+pub const REGISTERED_TOKENS: &[LexableToken] = &[
+    lexable_token!("+", TokenType::Plus),
+    lexable_token!("-", TokenType::Minus),
+    lexable_token!("{", TokenType::LeftBrace),
+    lexable_token!("}", TokenType::RightBrace),
+    lexable_token!("(", TokenType::LeftBracket),
+    lexable_token!(")", TokenType::RightBracket),
+    lexable_token!("=", TokenType::Equal),
+];
