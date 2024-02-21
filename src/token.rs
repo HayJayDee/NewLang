@@ -1,4 +1,3 @@
-
 #[derive(Debug)]
 pub struct Token {
     pub content: String,
@@ -7,28 +6,66 @@ pub struct Token {
     pub token_type: TokenType,
 }
 
-#[derive(Debug)]
-pub enum TokenType {
-    Plus,
-    Parenthesis,
-    Braket,
-    Identifier,
-    Number,
-    Equals
-}
-
-/*pub trait Token<T> {
-    fn from_str(&self, text: String, pos: i32, line: i32) -> Box<dyn Token<T>>;
-}*/
-
-/*
-impl Token {
-    pub fn new(line: i32, pos: i32, content: String) -> Self {
-        Self {
-            line: line,
-            pos: pos,
-            content: content
-        }
+impl PartialEq<&str> for Token {
+    fn eq(&self, other: &&str) -> bool {
+        self.content == *other.to_string()
     }
 }
-*/
+
+impl PartialEq<String> for Token {
+    fn eq(&self, other: &String) -> bool {
+        self.content == *other
+    }
+}
+
+impl PartialEq<TokenType> for Token {
+    fn eq(&self, other: &TokenType) -> bool {
+        self.token_type == *other
+    }
+}
+
+impl PartialEq<Token> for Token {
+    fn eq(&self, other: &Token) -> bool {
+        (*self == other.token_type)
+            && (*self == other.content)
+            && (self.line == other.line)
+            && (self.pos == other.pos)
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum TokenType {
+    Plus,
+    Minus,
+    LeftBrace,
+    RightBrace,
+    LeftBracket,
+    RightBracket,
+    Identifier,
+    Equal,
+}
+
+pub struct LexableToken {
+    pub match_str: &'static str,
+    pub token_type: TokenType,
+}
+
+#[macro_export]
+macro_rules! lexable_token {
+    ($match_str:expr, $token:expr) => {
+        LexableToken {
+            match_str: $match_str,
+            token_type: $token,
+        }
+    };
+}
+
+pub const REGISTERED_TOKENS: &[LexableToken] = &[
+    lexable_token!("+", TokenType::Plus),
+    lexable_token!("-", TokenType::Minus),
+    lexable_token!("{", TokenType::LeftBrace),
+    lexable_token!("}", TokenType::RightBrace),
+    lexable_token!("(", TokenType::LeftBracket),
+    lexable_token!(")", TokenType::RightBracket),
+    lexable_token!("=", TokenType::Equal),
+];

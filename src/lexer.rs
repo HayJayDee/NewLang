@@ -1,21 +1,21 @@
 use std::fmt::{self, Display, Formatter};
 
-use crate::token::{
-    Token,
-    TokenType
-};
-
+use crate::token::*;
 
 #[derive(Clone, Debug)]
 struct LexerError {
     line: usize,
     pos: usize,
-    content: String
+    content: String,
 }
 
 impl Display for LexerError {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        write!(f, "Unknown token at line {} position {}: '{}'", self.line, self.pos, self.content)
+        write!(
+            f,
+            "Unknown token at line {} position {}: '{}'",
+            self.line, self.pos, self.content
+        )
     }
 }
 
@@ -23,158 +23,93 @@ pub struct Lexer {
     text: String,
 }
 
-
 impl Lexer {
     pub fn new(input: String) -> Self {
-        Self {
-            text: input
-        }
+        Self { text: input }
     }
 
     fn lex_line(&self, line_num: usize, line: &str) -> Result<Vec<Token>, LexerError> {
-        let mut pos = 1;
+        let mut pos = 0;
 
         let mut tokens: Vec<Token> = Vec::new();
 
-        let mut chars = line.chars().peekable();
+        let chars: Vec<char> = line.chars().collect();
+        let chars_len = chars.len();
 
-        while let Some(c) = chars.next() {
+        while pos < line.len() {
+            let mut successfull = false;
 
-            if c.is_whitespace() {
+            if chars[pos].is_whitespace() {
                 pos += 1;
                 continue;
             }
 
-            if c == '+' {
-                tokens.push(
-                    Token {
-                        content: "+".to_string(),
-                        pos: pos,
+            for registered_token in REGISTERED_TOKENS {
+                if chars_len - pos < registered_token.match_str.len() {
+                    continue;
+                }
+
+                // Lex constant expressions like +, -, *
+                // TODO: Change this step
+                if registered_token.match_str.chars().collect::<Vec<char>>()
+                    == chars[pos..pos + registered_token.match_str.len()]
+                {
+                    tokens.push(Token {
+                        content: registered_token.match_str.to_string(),
+                        pos,
                         line: line_num,
-                        token_type: TokenType::Plus
-                    }
-                );
-                pos+=1;
+                        token_type: registered_token.token_type,
+                    });
+                    pos += registered_token.match_str.len();
+                    successfull = true;
+                    break;
+                }
+            }
+
+            if successfull {
                 continue;
-            }else if c == '(' {
-                tokens.push(
-                    Token {
-                        content: "(".to_string(),
-                        pos: pos,
-                        line: line_num,
-                        token_type: TokenType::Parenthesis
-                    }
-                );
-                pos+=1;
-                continue;
-            }else if c == '=' {
-                tokens.push(
-                    Token {
-                        content: "=".to_string(),
-                        pos: pos,
-                        line: line_num,
-                        token_type: TokenType::Equals
-                    }
-                );
-                pos+=1;
-                continue;
-            }else if c == ')' {
-                tokens.push(
-                    Token {
-                        content: ")".to_string(),
-                        pos: pos,
-                        line: line_num,
-                        token_type: TokenType::Parenthesis
-                    }
-                );
-                pos+=1;
-                continue;
-            }else if c == '{' {
-                tokens.push(
-                    Token {
-                        content: "{".to_string(),
-                        pos: pos,
-                        line: line_num,
-                        token_type: TokenType::Braket
-                    }
-                );
-                pos+=1;
-                continue;
-            }else if c == '}' {
-                tokens.push(
-                    Token {
-                        content: "}".to_string(),
-                        pos: pos,
-                        line: line_num,
-                        token_type: TokenType::Braket
-                    }
-                );
-                pos+=1;
-                continue;
-            }else if c.is_alphabetic() || c == '_' {
-                // Lex Identifier
-                let mut identifier = c.to_string();
+            }
+
+            // Lex identificators
+            if chars[pos].is_alphabetic() || chars[pos] == '_' {
                 let start_pos = pos;
-                while let Some(identifier_char) = chars.peek() {
-                    if identifier_char.is_alphanumeric() || identifier_char.to_owned() == '_' {
-                        identifier.push(chars.next().unwrap());
-                        pos += 1;
-                    }else {
+                pos += 1;
+                while let Some(c) = chars.get(pos) {
+                    if !c.is_alphanumeric() && *c != '_' {
                         break;
                     }
+                    pos += 1;
                 }
-                tokens.push(
-                    Token {
-                        content: identifier,
-                        pos: start_pos,
-                        line: line_num,
-                        token_type: TokenType::Identifier
-                    }
-                );
-            }else if c.is_numeric() {
-                // Lex Number
-                let mut number = c.to_string();
-                let start_pos = pos;
-                while let Some(num_char) = chars.peek() {
-                    if num_char.is_numeric() {
-                        number.push(chars.next().unwrap());
-                        pos += 1;
-                    }else {
-                        break;
-                    }
-                }
-                tokens.push(
-                    Token {
-                        content: number,
-                        pos: start_pos,
-                        line: line_num,
-                        token_type: TokenType::Number
-                    }
-                );
-            }else {
-                Err(LexerError {
-                    pos: pos,
+                tokens.push(Token {
+                    content: chars[start_pos..pos].to_vec().iter().collect(),
+                    pos: start_pos,
                     line: line_num,
-                    content: c.to_string()
+                    token_type: TokenType::Identifier,
+                });
+                continue;
+            }
+
+            if !successfull {
+                Err(LexerError {
+                    pos,
+                    line: line_num,
+                    content: chars[pos].to_string(),
                 })?
             }
         }
-
         Ok(tokens)
     }
 
     pub fn lex(&self) -> Vec<Token> {
-
-        let lines = self.text.split("\n");
+        let lines = self.text.split('\n');
 
         let mut tokens: Vec<Token> = Vec::new();
 
         for (line_num, line) in lines.enumerate() {
-            let line_tokens = self.lex_line(line_num, line).unwrap_or_else(|err| {
+            let line_tokens = self.lex_line(line_num + 1, line).unwrap_or_else(|err| {
                 println!("Lexer Error: {}", err);
                 Vec::new()
             });
-
 
             tokens.extend(line_tokens);
         }
