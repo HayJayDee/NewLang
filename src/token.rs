@@ -1,21 +1,8 @@
 #[derive(Debug)]
 pub struct Token {
-    pub content: String,
     pub pos: usize,
     pub line: usize,
     pub token_type: TokenType,
-}
-
-impl PartialEq<&str> for Token {
-    fn eq(&self, other: &&str) -> bool {
-        self.content == *other.to_string()
-    }
-}
-
-impl PartialEq<String> for Token {
-    fn eq(&self, other: &String) -> bool {
-        self.content == *other
-    }
 }
 
 impl PartialEq<TokenType> for Token {
@@ -26,14 +13,11 @@ impl PartialEq<TokenType> for Token {
 
 impl PartialEq<Token> for Token {
     fn eq(&self, other: &Token) -> bool {
-        (*self == other.token_type)
-            && (*self == other.content)
-            && (self.line == other.line)
-            && (self.pos == other.pos)
+        (*self == other.token_type) && (self.line == other.line) && (self.pos == other.pos)
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum TokenType {
     Plus,
     Minus,
@@ -41,8 +25,9 @@ pub enum TokenType {
     RightBrace,
     LeftBracket,
     RightBracket,
-    Identifier,
+    Identifier(String),
     Equal,
+    Number(usize),
 }
 
 pub struct LexableToken {

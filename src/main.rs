@@ -19,7 +19,7 @@ fn main() {
     match lexer.lex() {
         Ok(tokens) => {
             println!("{:?}", tokens);
-        },
+        }
         Err(err) => {
             println!("{}", err)
         }

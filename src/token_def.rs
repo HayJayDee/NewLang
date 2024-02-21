@@ -1,5 +1,7 @@
-use crate::{lexable_token, token::{LexableToken, TokenType}};
-
+use crate::{
+    lexable_token,
+    token::{LexableToken, TokenType},
+};
 
 pub const REGISTERED_TOKENS: &[LexableToken] = &[
     lexable_token!("+", TokenType::Plus),

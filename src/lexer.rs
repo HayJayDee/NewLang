@@ -55,10 +55,9 @@ impl Lexer {
                     == chars[pos..pos + registered_token.match_str.len()]
                 {
                     tokens.push(Token {
-                        content: registered_token.match_str.to_string(),
                         pos,
                         line: line_num,
-                        token_type: registered_token.token_type,
+                        token_type: registered_token.token_type.clone(),
                     });
                     pos += registered_token.match_str.len();
                     successfull = true;
@@ -81,11 +80,40 @@ impl Lexer {
                     pos += 1;
                 }
                 tokens.push(Token {
-                    content: chars[start_pos..pos].to_vec().iter().collect(),
                     pos: start_pos,
                     line: line_num,
-                    token_type: TokenType::Identifier,
+                    token_type: TokenType::Identifier(
+                        chars[start_pos..pos].to_vec().iter().collect(),
+                    ),
                 });
+                continue;
+            }
+
+            // Lex numbers
+            if chars[pos].is_numeric() {
+                let start_pos = pos;
+                pos += 1;
+                while let Some(c) = chars.get(pos) {
+                    if !c.is_numeric() {
+                        break;
+                    }
+                    pos += 1;
+                }
+                let string: String = chars[start_pos..pos].to_vec().iter().collect();
+                match string.as_str().parse() {
+                    Ok(number) => {
+                        tokens.push(Token {
+                            pos: start_pos,
+                            line: line_num,
+                            token_type: TokenType::Number(number),
+                        });
+                    }
+                    Err(_) => Err(LexerError {
+                        pos,
+                        line: line_num,
+                        content: chars[pos].to_string(),
+                    })?,
+                }
                 continue;
             }
 
