@@ -1,8 +1,8 @@
 use language::{
     self,
     lexer::Lexer,
-    token::{Token, TokenType},
-    token_def::REGISTERED_TOKENS,
+    token::Token,
+    token_def::{TokenType, REGISTERED_TOKENS},
 };
 
 fn test_token_vector(left: Vec<Token>, right: Vec<Token>) {
@@ -13,7 +13,7 @@ fn test_token_vector(left: Vec<Token>, right: Vec<Token>) {
 
 #[test]
 fn lexer_test_tokens() {
-    let test_string = "void main ( ) )) {}     =";
+    let test_string = "void main ( ) )) {}     =;";
     let lexer = Lexer::new(test_string.to_string());
     let tokens = lexer.lex().unwrap();
 
@@ -64,6 +64,11 @@ fn lexer_test_tokens() {
                 pos: 24,
                 line: 1,
                 token_type: TokenType::Equal,
+            },
+            Token {
+                pos: 25,
+                line: 1,
+                token_type: TokenType::Semicolon,
             },
         ],
     );

@@ -1,7 +1,13 @@
+use crate::token_def::TokenType;
+
+/// The representation of a token
 #[derive(Debug)]
 pub struct Token {
+    /// The position in the line (0 is first)
     pub pos: usize,
+    /// The line number (1 is first)
     pub line: usize,
+    /// The token type with additional information
     pub token_type: TokenType,
 }
 
@@ -17,28 +23,18 @@ impl PartialEq<Token> for Token {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
-pub enum TokenType {
-    Plus,
-    Minus,
-    LeftBrace,
-    RightBrace,
-    LeftBracket,
-    RightBracket,
-    Identifier(String),
-    Equal,
-    Number(usize),
-}
-
-pub struct LexableToken {
+/// This is the representation of a constant token
+pub struct ConstantToken {
+    /// The string that the lexer will match against
     pub match_str: &'static str,
     pub token_type: TokenType,
 }
 
+/// A small macro to add a constant token into token_def.rs
 #[macro_export]
-macro_rules! lexable_token {
+macro_rules! constant_token {
     ($match_str:expr, $token:expr) => {
-        LexableToken {
+        ConstantToken {
             match_str: $match_str,
             token_type: $token,
         }

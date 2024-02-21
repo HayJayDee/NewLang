@@ -1,7 +1,11 @@
 use std::fmt::{self, Display, Formatter};
 
-use crate::{token::*, token_def::REGISTERED_TOKENS};
+use crate::{
+    token::*,
+    token_def::{TokenType, REGISTERED_TOKENS},
+};
 
+/// The error which will get thrown if there is a problem during lexing
 #[derive(Clone, Debug)]
 pub struct LexerError {
     line: usize,
@@ -28,9 +32,14 @@ impl Lexer {
         Self { text: input }
     }
 
+    /// Lexing one line
+    /// # Arguments
+    /// * `line_num` - The line number of the current line
+    /// * `line` - The actual line which will be lexed
+    /// # Returns
+    /// The lexed tokens or an error, it there was an unknown character
     fn lex_line(&self, line_num: usize, line: &str) -> Result<Vec<Token>, LexerError> {
         let mut pos = 0;
-
         let mut tokens: Vec<Token> = Vec::new();
 
         let chars: Vec<char> = line.chars().collect();
@@ -39,20 +48,20 @@ impl Lexer {
         while pos < line.len() {
             let mut successfull = false;
 
+            // Skip all whitespaces
             if chars[pos].is_whitespace() {
                 pos += 1;
                 continue;
             }
 
+            // Check for a constant token
             for registered_token in REGISTERED_TOKENS {
+                // Check if the line is even long enough
                 if chars_len - pos < registered_token.match_str.len() {
                     continue;
                 }
 
-                let i = 0;
-
-                // Lex constant expressions like +, -, *
-                // TODO: Change this step
+                // TODO: Change this step, so we don't have to allocate this every time
                 if registered_token.match_str.chars().collect::<Vec<char>>()
                     == chars[pos..pos + registered_token.match_str.len()]
                 {
@@ -101,6 +110,7 @@ impl Lexer {
                     }
                     pos += 1;
                 }
+                // Parse the string into a number
                 let string: String = chars[start_pos..pos].to_vec().iter().collect();
                 match string.as_str().parse() {
                     Ok(number) => {
@@ -130,6 +140,9 @@ impl Lexer {
         Ok(tokens)
     }
 
+    /// Lex the text of the Lexer
+    /// # Returns
+    /// A list of all parsed vectors or the error
     pub fn lex(&self) -> Result<Vec<Token>, LexerError> {
         let lines = self.text.split('\n');
 
@@ -137,7 +150,6 @@ impl Lexer {
 
         for (line_num, line) in lines.enumerate() {
             let line_tokens = self.lex_line(line_num + 1, line)?;
-
             tokens.extend(line_tokens);
         }
 
