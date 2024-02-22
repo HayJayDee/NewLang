@@ -7,9 +7,9 @@ mod token;
 mod token_def;
 mod visitor;
 
-use crate::visitor::Visitor;
 use crate::lexer::Lexer;
 use crate::parser::Parser;
+use crate::visitor::Visitor;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -25,19 +25,7 @@ fn main() {
 
     let ast = parser.parse();
     println!("{:?}", ast);
-    let visitor = Visitor::new();
-    visitor.visit(&ast);
-
-    /*
-    match lexer.lex() {
-        Ok(tokens) => {
-            println!("{:?}", tokens);
-            let ast = Parser::parse(tokens);
-            println!("{:?}", ast);
-        }
-        Err(err) => {
-            println!("{}", err)
-        }
-    }
-    */
+    let visitor = Visitor;
+    let result = visitor.visit(&ast);
+    println!("{}", result);
 }
