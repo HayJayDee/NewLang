@@ -1,13 +1,13 @@
 use std::{env, fs};
 
+mod ast;
 mod lexer;
+mod parser;
 mod token;
 mod token_def;
-mod parser;
-mod ast;
 
-use crate::parser::Parser;
 use crate::lexer::Lexer;
+use crate::parser::Parser;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -18,11 +18,11 @@ fn main() {
 
     let input = fs::read_to_string(&args[1]).unwrap();
 
-    let mut lexer = Lexer::new(input.to_string());
-    
-    while let Some(token) = lexer.next() {
-        println!("{:?}", token);
-    }
+    let lexer = Lexer::new(input.to_string());
+    let mut parser = Parser::new(lexer);
+
+    let ast = parser.parse();
+    println!("{:?}", ast);
 
     /*
     match lexer.lex() {

@@ -26,7 +26,7 @@ impl Display for LexerError {
 pub struct Lexer {
     chars: Vec<char>,
     pos: usize,
-    line: usize
+    line: usize,
 }
 
 impl Lexer {
@@ -34,7 +34,7 @@ impl Lexer {
         Self {
             chars: input.chars().collect(),
             pos: 0,
-            line: 1
+            line: 1,
         }
     }
 
@@ -83,7 +83,10 @@ impl Lexer {
                     pos: start_pos,
                     line: self.line,
                     token_type: TokenType::Identifier(
-                        self.chars[start_pos..self.pos].to_vec().iter().collect(),
+                        self.chars[start_pos..self.pos]
+                            .to_vec()
+                            .iter()
+                            .collect::<String>(),
                     ),
                 });
             }
@@ -114,9 +117,13 @@ impl Lexer {
                         content: self.chars[self.pos].to_string(),
                     })?,
                 }
-            } 
+            }
         }
-        Ok(Token { pos: self.pos, line: self.line, token_type: TokenType::Eof })
+        Ok(Token {
+            pos: self.pos,
+            line: self.line,
+            token_type: TokenType::Eof,
+        })
     }
 }
 
@@ -124,10 +131,6 @@ impl Iterator for Lexer {
     type Item = Token;
     fn next(&mut self) -> Option<Self::Item> {
         let next_token = self.get_next_token().unwrap();
-        if next_token.token_type == TokenType::Eof {
-            None
-        }else {
-            Some(next_token)
-        }
+        Some(next_token)
     }
 }

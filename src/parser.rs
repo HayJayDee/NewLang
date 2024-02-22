@@ -1,123 +1,81 @@
-use crate::{ast::AstNode, token::Token, token_def::TokenType};
+use crate::{ast::AstNode, lexer::Lexer, token::Token, token_def::TokenType};
 
-const Operators: [(TokenType, u32); 2] = [
-    (TokenType::Plus, 10),
-    (TokenType::Minus, 10),
-];
-
-pub struct Parser;
-
-impl Parser {
-
-    fn parse_expr(position: &mut usize, tokens: &Vec<Token>) -> AstNode {
-        match tokens[*position].token_type {
-            TokenType::Number(number) => {
-                *position += 2; // Skip ; for now
-                AstNode::Int(number)
-            },
-            _ => {
-                panic!();
-            }
-        }
-    }
-
-    fn parse_stmt(position: &mut usize, tokens: &Vec<Token>) -> AstNode {
-        match &tokens[*position].token_type {
-            TokenType::Identifier(name) => {
-                if tokens[*position + 1].token_type == TokenType::Equal {
-                    *position += 2;
-                    let expr = Parser::parse_expr(position, tokens);
-                    AstNode::VariableAssignment {
-                        name: Box::new(name.clone()),
-                        expr: Box::new(expr)
-                    }
-                }else {
-                    panic!();
-                }
-            },
-            _ => {
-                panic!();
-            }
-        }
-    }
-
-    fn parse_block(position: &mut usize, tokens: &Vec<Token>) -> AstNode {
-        match tokens[*position].token_type {
-            TokenType::LeftBrace => {
-                *position += 1;
-                let mut stmts: Vec<AstNode> = Vec::new();
-                while tokens[*position].token_type != TokenType::RightBrace {
-                    stmts.push(Parser::parse_stmt(position, tokens));
-                }
-                // Skip Right Brace
-                *position += 1;
-                AstNode::Block {
-                    stmts: Box::new(stmts)
-                }
-            },
-            _ => {
-                panic!();
-            }
-        }
-    }
-
-    fn parse_function_definition(position: &mut usize, tokens: &Vec<Token>) -> AstNode {
-
-        let return_type = &tokens[*position];
-
-        match &tokens[*position + 1].token_type {
-            TokenType::Identifier(name) => {
-                match tokens[*position + 2].token_type {
-                    TokenType::LeftBracket => {
-                        match tokens[*position + 3].token_type {
-                            TokenType::RightBracket => {
-                                match tokens[*position + 4].token_type {
-                                    TokenType::LeftBrace => {
-                                        *position += 4;
-                                        let stmt = Parser::parse_block(position, tokens);
-                                    
-                                        return AstNode::FunctionDefinition {
-                                            name: Box::new(name.clone()),
-                                            return_type: Box::new(return_type.clone()),
-                                            stmt: Box::new(stmt)
-                                        };
-                                    },
-                                    _ => {
-                                        panic!();
-                                    }
-                                }
-                            },
-                            _ => {
-                                panic!();
-                            }
-                        }
-                    },
-                    _ => {
-                        panic!();
-                    }
-                }
-            },
-            _ => {
-                panic!("Error");
-            }
-        }
-    }
-    
-    
-    pub fn parse(tokens: Vec<Token>) -> Vec<AstNode> {
-        let mut pos = 0;
-
-        let mut nodes: Vec<AstNode> = Vec::new();
-
-        while pos < tokens.len() {
-            if tokens[pos] == TokenType::Keyword("void") {
-                nodes.push(Parser::parse_function_definition(&mut pos, &tokens));
-            }
-        }
-        
-        nodes
-    }
+pub struct Parser {
+    lexer: Lexer,
+    current_token: Token,
 }
 
+impl Parser {
+    pub fn new(mut lexer: Lexer) -> Self {
+        let token = lexer.next().unwrap();
+        Self {
+            lexer,
+            current_token: token,
+        }
+    }
 
-// match_types!(TokenType)
+    fn eat(&mut self, token_type: TokenType) {
+        if self.current_token == token_type {
+            self.current_token = self.lexer.next().unwrap();
+        } else {
+            panic!("Something went horribly wrong");
+        }
+    }
+
+    fn consume(&mut self) {
+        self.current_token = self.lexer.next().unwrap();
+    }
+
+    fn parse_factor(&mut self) -> AstNode {
+        match self.current_token.token_type {
+            TokenType::Number(number) => {
+                self.consume();
+                AstNode::Int(number)
+            }
+            TokenType::LeftBracket => {
+                self.eat(TokenType::LeftBracket);
+                let node = self.parse_expression();
+                self.eat(TokenType::RightBracket);
+                node
+            }
+            _ => {
+                panic!("Unknown token {:?}", self.current_token);
+            }
+        }
+    }
+
+    fn parse_term(&mut self) -> AstNode {
+        let mut node = self.parse_factor();
+
+        while (self.current_token == TokenType::Multiply)
+            || (self.current_token == TokenType::Divide)
+        {
+            let token = self.current_token.clone();
+            self.consume();
+            node = AstNode::BinaryOperation {
+                op: Box::new(token),
+                left: Box::new(node),
+                right: Box::new(self.parse_factor()),
+            };
+        }
+        node
+    }
+
+    fn parse_expression(&mut self) -> AstNode {
+        let mut node = self.parse_term();
+        while (self.current_token == TokenType::Minus) || (self.current_token == TokenType::Plus) {
+            let token = self.current_token.clone();
+            self.consume();
+            node = AstNode::BinaryOperation {
+                op: Box::new(token),
+                left: Box::new(node),
+                right: Box::new(self.parse_term()),
+            };
+        }
+        node
+    }
+
+    pub fn parse(&mut self) -> AstNode {
+        self.parse_expression()
+    }
+}

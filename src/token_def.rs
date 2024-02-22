@@ -8,6 +8,10 @@ pub enum TokenType {
     Semicolon,
     /// Token -
     Minus,
+    /// Token -
+    Multiply,
+    /// Token -
+    Divide,
     /// Token {
     LeftBrace,
     /// Token }
@@ -30,10 +34,12 @@ pub enum TokenType {
 }
 
 /// An array of every constant token, so the lexer can access them easier
-pub const REGISTERED_TOKENS: [ConstantToken; 10] = [
+pub const REGISTERED_TOKENS: [ConstantToken; 12] = [
     constant_token!("void", TokenType::Keyword("void")),
     constant_token!("++", TokenType::Increment),
     constant_token!("+", TokenType::Plus),
+    constant_token!("*", TokenType::Multiply),
+    constant_token!("/", TokenType::Divide),
     constant_token!(";", TokenType::Semicolon),
     constant_token!("-", TokenType::Minus),
     constant_token!("{", TokenType::LeftBrace),
