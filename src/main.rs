@@ -5,6 +5,7 @@ mod lexer;
 mod parser;
 mod token;
 mod token_def;
+mod visitor;
 
 use crate::lexer::Lexer;
 use crate::parser::Parser;

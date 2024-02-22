@@ -1,4 +1,4 @@
-use language::{
+use photonix::{
     self,
     lexer::Lexer,
     token::Token,
