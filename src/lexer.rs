@@ -41,11 +41,23 @@ impl Lexer {
     pub fn get_next_token(&mut self) -> Result<Token, LexerError> {
         if self.pos < self.chars.len() {
             // Skip all whitespaces
-            while self.chars[self.pos].is_whitespace() {
-                if self.chars[self.pos] == '\n' {
+
+            while let Some(c) = self.chars.get(self.pos) {
+                if !c.is_whitespace() {
+                    break;
+                }
+                if *c == '\n' {
                     self.line += 1;
                 }
                 self.pos += 1;
+            }
+
+            if self.pos >= self.chars.len() {
+                return Ok(Token {
+                    pos: self.pos,
+                    line: self.line,
+                    token_type: TokenType::Eof,
+                });
             }
 
             // Check for a constant token
@@ -70,53 +82,69 @@ impl Lexer {
             }
 
             // Lex identificators
-            if self.chars[self.pos].is_alphabetic() || self.chars[self.pos] == '_' {
-                let start_pos = self.pos;
-                self.pos += 1;
-                while let Some(c) = self.chars.get(self.pos) {
-                    if !c.is_alphanumeric() && *c != '_' {
-                        break;
-                    }
+            if let Some(c) = self.chars.get(self.pos) {
+                if c.is_alphabetic() || *c == '_' {
+                    let start_pos = self.pos;
                     self.pos += 1;
+                    while let Some(c) = self.chars.get(self.pos) {
+                        if !c.is_alphanumeric() && *c != '_' {
+                            break;
+                        }
+                        self.pos += 1;
+                    }
+                    return Ok(Token {
+                        pos: start_pos,
+                        line: self.line,
+                        token_type: TokenType::Identifier(
+                            self.chars[start_pos..self.pos]
+                                .to_vec()
+                                .iter()
+                                .collect::<String>(),
+                        ),
+                    });
                 }
+            } else {
                 return Ok(Token {
-                    pos: start_pos,
+                    pos: self.pos,
                     line: self.line,
-                    token_type: TokenType::Identifier(
-                        self.chars[start_pos..self.pos]
-                            .to_vec()
-                            .iter()
-                            .collect::<String>(),
-                    ),
+                    token_type: TokenType::Eof,
                 });
             }
 
             // Lex numbers
-            if self.chars[self.pos].is_numeric() {
-                let start_pos = self.pos;
-                self.pos += 1;
-                while let Some(c) = self.chars.get(self.pos) {
-                    if !c.is_numeric() {
-                        break;
-                    }
+            if let Some(c) = self.chars.get(self.pos) {
+                if c.is_numeric() {
+                    let start_pos = self.pos;
                     self.pos += 1;
-                }
-                // Parse the string into a number
-                let string: String = self.chars[start_pos..self.pos].to_vec().iter().collect();
-                match string.as_str().parse() {
-                    Ok(number) => {
-                        return Ok(Token {
-                            pos: start_pos,
-                            line: self.line,
-                            token_type: TokenType::Number(number),
-                        });
+                    while let Some(c) = self.chars.get(self.pos) {
+                        if !c.is_numeric() {
+                            break;
+                        }
+                        self.pos += 1;
                     }
-                    Err(_) => Err(LexerError {
-                        pos: self.pos,
-                        line: self.line,
-                        content: self.chars[self.pos].to_string(),
-                    })?,
+                    // Parse the string into a number
+                    let string: String = self.chars[start_pos..self.pos].to_vec().iter().collect();
+                    match string.as_str().parse() {
+                        Ok(number) => {
+                            return Ok(Token {
+                                pos: start_pos,
+                                line: self.line,
+                                token_type: TokenType::Number(number),
+                            });
+                        }
+                        Err(_) => Err(LexerError {
+                            pos: self.pos,
+                            line: self.line,
+                            content: self.chars[self.pos].to_string(),
+                        })?,
+                    }
                 }
+            } else {
+                return Ok(Token {
+                    pos: self.pos,
+                    line: self.line,
+                    token_type: TokenType::Eof,
+                });
             }
         }
         Ok(Token {
@@ -131,6 +159,10 @@ impl Iterator for Lexer {
     type Item = Token;
     fn next(&mut self) -> Option<Self::Item> {
         let next_token = self.get_next_token().unwrap();
-        Some(next_token)
+        if next_token == TokenType::Eof {
+            None
+        } else {
+            Some(next_token)
+        }
     }
 }
