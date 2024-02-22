@@ -1,18 +1,15 @@
-use crate::parser::Parser;
+use crate::ast::AstNode;
 
 
-pub struct Visitor {
-    parser: Parser,
-}
+pub struct Visitor;
 
 impl Visitor {
-    pub fn new(parser: Parser) -> Self {
+    pub fn new() -> Self {
         Self {
-            parser
         }
     }
 
-    pub fn visit() {
+    pub fn visit(&self, node: &AstNode) {
         
     }
 }
