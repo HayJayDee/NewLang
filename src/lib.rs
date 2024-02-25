@@ -4,4 +4,3 @@ pub mod parser;
 pub mod token;
 pub mod token_def;
 pub mod visitor;
-pub mod ir;

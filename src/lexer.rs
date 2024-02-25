@@ -38,7 +38,7 @@ impl Lexer {
         }
     }
 
-    pub fn get_next_token(&mut self) -> Result<Token, LexerError> {
+    fn get_next_token(&mut self) -> Result<Token, LexerError> {
         if self.pos < self.chars.len() {
             // Skip all whitespaces
 
@@ -139,13 +139,12 @@ impl Lexer {
                         })?,
                     }
                 }
-            } else {
-                return Ok(Token {
-                    pos: self.pos,
-                    line: self.line,
-                    token_type: TokenType::Eof,
-                });
             }
+            Err(LexerError {
+                pos: self.pos,
+                line: self.line,
+                content: self.chars[self.pos].to_string(),
+            })?
         }
         Ok(Token {
             pos: self.pos,
@@ -153,16 +152,30 @@ impl Lexer {
             token_type: TokenType::Eof,
         })
     }
-}
 
-impl Iterator for Lexer {
-    type Item = Token;
-    fn next(&mut self) -> Option<Self::Item> {
-        let next_token = self.get_next_token().unwrap();
-        if next_token == TokenType::Eof {
-            None
-        } else {
-            Some(next_token)
+    pub fn next(&mut self) -> Result<Option<Token>, LexerError> {
+        match self.get_next_token() {
+            Ok(next_token) => {
+                println!("{:?}", next_token);
+                if next_token == TokenType::Eof {
+                    return Ok(None);
+                }else {
+                    return Ok(Some(next_token));
+                }    
+            },
+            Err(err) => {
+                return Err(err);
+            }
         }
+    }
+
+    pub fn collect(&mut self) -> Result<Vec<Token>, LexerError> {
+        let mut vec = Vec::new();
+        
+        while let Some(token) = self.next()? {
+            vec.push(token);
+        }
+
+        Ok(vec)
     }
 }

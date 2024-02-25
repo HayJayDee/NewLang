@@ -6,7 +6,6 @@ mod parser;
 mod token;
 mod token_def;
 mod visitor;
-mod ir;
 
 use inkwell::context::Context;
 
@@ -24,13 +23,13 @@ fn main() {
     let input = fs::read_to_string(&args[1]).unwrap();
 
     let lexer = Lexer::new(input.to_string());
-    let mut parser = Parser::new(lexer);
+    let mut parser = Parser::new(lexer).unwrap();
 
-    let ast = parser.parse();
+    let ast = parser.parse().unwrap();
     println!("{:?}", ast);
     let visitor = Visitor::default();
 
-    let context = Context::create();
+    let _context = Context::create();
 
     let result = visitor.visit(&ast);
     println!("{}", result);
