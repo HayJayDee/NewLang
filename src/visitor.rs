@@ -1,7 +1,9 @@
 use crate::{ast::AstNode, token_def::TokenType};
 
 #[derive(Default)]
-pub struct Visitor;
+pub struct Visitor {
+    //instructions: Vec<IRInstruction>
+}
 
 impl Visitor {
     pub fn visit_number(&self, number: i64) -> i64 {

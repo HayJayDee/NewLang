@@ -6,6 +6,9 @@ mod parser;
 mod token;
 mod token_def;
 mod visitor;
+mod ir;
+
+use inkwell::context::Context;
 
 use crate::lexer::Lexer;
 use crate::parser::Parser;
@@ -25,7 +28,10 @@ fn main() {
 
     let ast = parser.parse();
     println!("{:?}", ast);
-    let visitor = Visitor;
+    let visitor = Visitor::default();
+
+    let context = Context::create();
+
     let result = visitor.visit(&ast);
     println!("{}", result);
 }
