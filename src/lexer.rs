@@ -153,29 +153,18 @@ impl Lexer {
         })
     }
 
-    pub fn next(&mut self) -> Result<Option<Token>, LexerError> {
+    pub fn lex_next(&mut self) -> Result<Option<Token>, LexerError> {
         match self.get_next_token() {
             Ok(next_token) => {
-                println!("{:?}", next_token);
                 if next_token == TokenType::Eof {
-                    return Ok(None);
-                }else {
-                    return Ok(Some(next_token));
-                }    
-            },
+                    Ok(None)
+                } else {
+                    Ok(Some(next_token))
+                }
+            }
             Err(err) => {
-                return Err(err);
+                Err(err)
             }
         }
-    }
-
-    pub fn collect(&mut self) -> Result<Vec<Token>, LexerError> {
-        let mut vec = Vec::new();
-        
-        while let Some(token) = self.next()? {
-            vec.push(token);
-        }
-
-        Ok(vec)
     }
 }

@@ -1,4 +1,9 @@
-use crate::{ast::AstNode, lexer::{Lexer, LexerError}, token::Token, token_def::TokenType};
+use crate::{
+    ast::AstNode,
+    lexer::{Lexer, LexerError},
+    token::Token,
+    token_def::TokenType,
+};
 
 pub struct Parser {
     lexer: Lexer,
@@ -7,7 +12,7 @@ pub struct Parser {
 
 impl Parser {
     pub fn new(mut lexer: Lexer) -> Result<Self, LexerError> {
-        let token = lexer.next()?;
+        let token = lexer.lex_next()?;
         Ok(Self {
             lexer,
             current_token: token,
@@ -18,7 +23,7 @@ impl Parser {
         match &self.current_token {
             Some(token) => {
                 if *token == token_type {
-                    let curr_token = self.lexer.next()?;
+                    let curr_token = self.lexer.lex_next()?;
                     self.current_token = curr_token;
                 } else {
                     panic!("Something went horribly wrong");
@@ -31,8 +36,8 @@ impl Parser {
         Ok(())
     }
 
-    fn consume(&mut self) -> Result<(), LexerError>{
-        self.current_token = self.lexer.next()?;
+    fn consume(&mut self) -> Result<(), LexerError> {
+        self.current_token = self.lexer.lex_next()?;
         Ok(())
     }
 

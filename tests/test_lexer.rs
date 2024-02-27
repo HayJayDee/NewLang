@@ -1,6 +1,6 @@
 use photonix::{
     self,
-    lexer::Lexer,
+    lexer::{Lexer, LexerError},
     token::Token,
     token_def::{TokenType, REGISTERED_TOKENS},
 };
@@ -11,11 +11,21 @@ fn test_token_vector(left: Vec<Token>, right: Vec<Token>) {
     }
 }
 
+fn collect_lexer(lexer: &mut Lexer) -> Result<Vec<Token>, LexerError> {
+    let mut vec = Vec::new();
+
+    while let Some(token) = lexer.lex_next()? {
+        vec.push(token);
+    }
+
+    Ok(vec)
+}
+
 #[test]
 fn lexer_test_tokens() {
     let test_string = "void main ( ) )) {}     =;";
     let mut lexer = Lexer::new(test_string.to_string());
-    let tokens = lexer.collect().unwrap();
+    let tokens = collect_lexer(&mut lexer).unwrap();
 
     test_token_vector(
         tokens,
@@ -79,7 +89,7 @@ fn lexer_test_every_registered_token() {
     for token in REGISTERED_TOKENS {
         let input = token.match_str;
         let mut lexer = Lexer::new(input.to_string());
-        let tokens: Vec<Token> = lexer.collect().unwrap();
+        let tokens: Vec<Token> = collect_lexer(&mut lexer).unwrap();
         assert_eq!(tokens.len(), 1);
         assert_eq!(
             tokens[0],
@@ -96,7 +106,7 @@ fn lexer_test_every_registered_token() {
 fn lexer_test_identifier() {
     let input = "test _test tes_te _te_te_ _te123123_";
     let mut lexer = Lexer::new(input.to_string());
-    let tokens = lexer.collect().unwrap();
+    let tokens = collect_lexer(&mut lexer).unwrap();
     test_token_vector(
         tokens,
         vec![
@@ -133,7 +143,7 @@ fn lexer_test_identifier() {
 pub fn test_lexer_utf8() {
     let input = "©";
     let mut lexer = Lexer::new(input.to_string());
-    let error = lexer.next().unwrap_err();
+    let error = lexer.lex_next().unwrap_err();
     println!("{}", error)
 }
 
@@ -141,7 +151,7 @@ pub fn test_lexer_utf8() {
 pub fn test_numbers() {
     let input = "12345 0345";
     let mut lexer = Lexer::new(input.to_string());
-    let tokens = lexer.collect().unwrap();
+    let tokens = collect_lexer(&mut lexer).unwrap();
     test_token_vector(
         tokens,
         vec![
