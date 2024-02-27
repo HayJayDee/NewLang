@@ -103,12 +103,6 @@ impl Lexer {
                         ),
                     });
                 }
-            } else {
-                return Ok(Token {
-                    pos: self.pos,
-                    line: self.line,
-                    token_type: TokenType::Eof,
-                });
             }
 
             // Lex numbers
@@ -124,20 +118,12 @@ impl Lexer {
                     }
                     // Parse the string into a number
                     let string: String = self.chars[start_pos..self.pos].to_vec().iter().collect();
-                    match string.as_str().parse() {
-                        Ok(number) => {
-                            return Ok(Token {
-                                pos: start_pos,
-                                line: self.line,
-                                token_type: TokenType::Number(number),
-                            });
-                        }
-                        Err(_) => Err(LexerError {
-                            pos: self.pos,
-                            line: self.line,
-                            content: self.chars[self.pos].to_string(),
-                        })?,
-                    }
+                    let number: i64 = string.as_str().parse().unwrap(); // In theory this should never fail
+                    return Ok(Token {
+                        pos: start_pos,
+                        line: self.line,
+                        token_type: TokenType::Number(number),
+                    });
                 }
             }
             Err(LexerError {
@@ -162,9 +148,7 @@ impl Lexer {
                     Ok(Some(next_token))
                 }
             }
-            Err(err) => {
-                Err(err)
-            }
+            Err(err) => Err(err),
         }
     }
 }

@@ -1,6 +1,6 @@
 use crate::token::Token;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum AstNode {
     Int(i64),
     BinaryOperation {

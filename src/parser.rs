@@ -70,15 +70,21 @@ impl Parser {
         let mut node = self.parse_factor()?;
 
         while let Some(token) = self.current_token.clone() {
-            if (token == TokenType::Multiply) || (token == TokenType::Divide) {
-                self.consume()?;
-                node = AstNode::BinaryOperation {
-                    op: Box::new(token),
-                    left: Box::new(node),
-                    right: Box::new(self.parse_factor()?),
-                };
-            } else {
-                break;
+            match token.token_type {
+                TokenType::Multiply | TokenType::Divide => {
+                    self.consume()?;
+                    node = AstNode::BinaryOperation {
+                        op: Box::new(token),
+                        left: Box::new(node),
+                        right: Box::new(self.parse_factor()?),
+                    };
+                },
+                TokenType::Plus | TokenType::Minus | TokenType::RightBracket => {
+                    break;
+                }
+                _ => {
+                    panic!("Unexpected token {:?}", self.current_token);
+                }
             }
         }
         Ok(node)
@@ -88,15 +94,21 @@ impl Parser {
         let mut node = self.parse_term()?;
 
         while let Some(token) = self.current_token.clone() {
-            if (token == TokenType::Minus) || (token == TokenType::Plus) {
-                self.consume()?;
-                node = AstNode::BinaryOperation {
-                    op: Box::new(token),
-                    left: Box::new(node),
-                    right: Box::new(self.parse_term()?),
-                };
-            } else {
-                break;
+            match token.token_type {
+                TokenType::Minus | TokenType::Plus => {
+                    self.consume()?;
+                    node = AstNode::BinaryOperation {
+                        op: Box::new(token),
+                        left: Box::new(node),
+                        right: Box::new(self.parse_term()?),
+                    };
+                },
+                TokenType::RightBracket => {
+                    break;
+                },
+                _ => {
+                    panic!("Unexpected token {:?}", self.current_token);
+                }
             }
         }
         Ok(node)

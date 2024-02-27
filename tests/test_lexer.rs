@@ -23,7 +23,7 @@ fn collect_lexer(lexer: &mut Lexer) -> Result<Vec<Token>, LexerError> {
 
 #[test]
 fn lexer_test_tokens() {
-    let test_string = "void main ( ) )) {}     =;";
+    let test_string = "void main ( ) )) {}     =; ";
     let mut lexer = Lexer::new(test_string.to_string());
     let tokens = collect_lexer(&mut lexer).unwrap();
 
@@ -163,6 +163,28 @@ pub fn test_numbers() {
             Token {
                 pos: 6,
                 line: 1,
+                token_type: TokenType::Number(345),
+            },
+        ],
+    );
+}
+
+#[test]
+pub fn test_new_line() {
+    let input = "12345\n 0345";
+    let mut lexer = Lexer::new(input.to_string());
+    let tokens = collect_lexer(&mut lexer).unwrap();
+    test_token_vector(
+        tokens,
+        vec![
+            Token {
+                pos: 0,
+                line: 1,
+                token_type: TokenType::Number(12345),
+            },
+            Token {
+                pos: 7,
+                line: 2,
                 token_type: TokenType::Number(345),
             },
         ],

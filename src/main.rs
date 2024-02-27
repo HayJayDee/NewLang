@@ -40,7 +40,6 @@ fn main() {
     let exe_engine = module
         .create_jit_execution_engine(OptimizationLevel::None)
         .unwrap();
-    //let codegen = CodeGen::new(&context, "test", OptimizationLevel::None);
 
     let mut visitor = Visitor::new(&context, module, builder);
 
