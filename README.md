@@ -1,4 +1,5 @@
 # Photonix
+[![CI](https://github.com/HayJayDee/Photonix/actions/workflows/ci.yml/badge.svg)](https://github.com/HayJayDee/Photonix/actions/workflows/ci.yml)
 Is a compiler
 
 ## Run on mac

@@ -20,7 +20,7 @@ jobs:
           rustup update
           rustup component add clippy
           git clone https://github.com/llvm/llvm-project.git
-          mkdir build && cd build && cmake '-DLLVM_ENABLE_PROJECTS=clang;polly' ../llvm && cmake --build . && cd ..
+          mkdir build && cd build && cmake '-DLLVM_ENABLE_PROJECTS=clang;polly' ../llvm-project && cmake --build . && cd ..
           wget https://apt.llvm.org/llvm.sh
           chmod +x llvm.sh
           sudo ./llvm.sh 17
