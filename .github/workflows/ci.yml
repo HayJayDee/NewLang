@@ -19,7 +19,8 @@ jobs:
         run: |
           rustup update
           rustup component add clippy
-          sudo add-apt-repository ppa:conscioususer/polly-daily && sudo apt-get update && sudo apt-get install polly
+          git clone https://github.com/llvm/llvm-project.git
+          mkdir build && cd build && cmake '-DLLVM_ENABLE_PROJECTS=clang;polly' ../llvm && cmake --build . && cd ..
           wget https://apt.llvm.org/llvm.sh
           chmod +x llvm.sh
           sudo ./llvm.sh 17
