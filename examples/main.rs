@@ -1,12 +1,5 @@
 use std::{env, fs};
 
-mod ast;
-mod lexer;
-mod parser;
-mod token;
-mod token_def;
-mod visitor;
-
 use inkwell::context::Context;
 use inkwell::execution_engine::JitFunction;
 use inkwell::targets::{
@@ -14,9 +7,9 @@ use inkwell::targets::{
 };
 use inkwell::OptimizationLevel;
 
-use crate::lexer::Lexer;
-use crate::parser::Parser;
-use crate::visitor::Visitor;
+use photonix::lexer::Lexer;
+use photonix::parser::Parser;
+use photonix::visitor::Visitor;
 
 pub type SumFunc = unsafe extern "C" fn() -> u64;
 
@@ -67,10 +60,8 @@ fn main() {
             )
             .unwrap();
 
-        // create a module and do JIT stuff
-
         machine
-            .write_to_file(&visitor.module, FileType::Object, "out.o".as_ref())
+            .write_to_file(&visitor.module, FileType::Object, "target/out.o".as_ref())
             .unwrap();
 
         let res = fun.call();

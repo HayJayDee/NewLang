@@ -68,8 +68,52 @@ pub fn test_parser_simple_parant() {
 
 #[test]
 #[should_panic]
-pub fn test_parser_wrong_token() {
+pub fn test_parser_wrong_token_add() {
     let input = "1+ + 1";
+    let lexer = Lexer::new(input.to_string());
+    let mut parser = Parser::new(lexer).unwrap();
+    let _ = parser.parse();
+}
+
+#[test]
+#[should_panic]
+pub fn test_parser_wrong_token_mult() {
+    let input = "1* * 1";
+    let lexer = Lexer::new(input.to_string());
+    let mut parser = Parser::new(lexer).unwrap();
+    let _ = parser.parse();
+}
+
+#[test]
+#[should_panic]
+pub fn test_parser_wrong_token_parant() {
+    let input = "1 + (1";
+    let lexer = Lexer::new(input.to_string());
+    let mut parser = Parser::new(lexer).unwrap();
+    let _ = parser.parse();
+}
+
+#[test]
+#[should_panic]
+pub fn test_parser_wrong_token_mul() {
+    let input = "1 + (1*";
+    let lexer = Lexer::new(input.to_string());
+    let mut parser = Parser::new(lexer).unwrap();
+    let _ = parser.parse();
+}
+
+#[test]
+#[should_panic]
+pub fn test_parser_wrong_token_mult_unexp_token() {
+    let input = "1 + (1*1;";
+    let lexer = Lexer::new(input.to_string());
+    let mut parser = Parser::new(lexer).unwrap();
+    let _ = parser.parse();
+}
+
+#[should_panic]
+pub fn test_parser_wrong_token_add_unexp_token() {
+    let input = "1+1;";
     let lexer = Lexer::new(input.to_string());
     let mut parser = Parser::new(lexer).unwrap();
     let _ = parser.parse();

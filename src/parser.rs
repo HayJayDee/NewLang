@@ -68,6 +68,11 @@ impl Parser {
 
     fn parse_term(&mut self) -> Result<AstNode, LexerError> {
         let mut node = self.parse_factor()?;
+        if let Some(token) = self.current_token.clone() {
+            if token == TokenType::RightBracket {
+                return Ok(node);
+            }
+        }
 
         while let Some(token) = self.current_token.clone() {
             match token.token_type {
@@ -78,8 +83,13 @@ impl Parser {
                         left: Box::new(node),
                         right: Box::new(self.parse_factor()?),
                     };
-                },
-                TokenType::Plus | TokenType::Minus | TokenType::RightBracket => {
+                    if let Some(new_curr_token) = self.current_token.clone() {
+                        if new_curr_token == TokenType::RightBracket {
+                            break;
+                        }
+                    }
+                }
+                TokenType::Plus | TokenType::Minus => {
                     break;
                 }
                 _ => {
@@ -92,6 +102,11 @@ impl Parser {
 
     fn parse_expression(&mut self) -> Result<AstNode, LexerError> {
         let mut node = self.parse_term()?;
+        if let Some(token) = self.current_token.clone() {
+            if token == TokenType::RightBracket {
+                return Ok(node);
+            }
+        }
 
         while let Some(token) = self.current_token.clone() {
             match token.token_type {
@@ -102,10 +117,12 @@ impl Parser {
                         left: Box::new(node),
                         right: Box::new(self.parse_term()?),
                     };
-                },
-                TokenType::RightBracket => {
-                    break;
-                },
+                    if let Some(new_curr_token) = self.current_token.clone() {
+                        if new_curr_token == TokenType::RightBracket {
+                            break;
+                        }
+                    }
+                }
                 _ => {
                     panic!("Unexpected token {:?}", self.current_token);
                 }
